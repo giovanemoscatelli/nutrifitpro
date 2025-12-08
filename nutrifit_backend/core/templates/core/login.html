@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriFit Pro - Login</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .btn-entrar {
+            width: 100%;
+            font-weight: bold;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <h1 class="h3 mb-3 fw-normal">🔐 NutriFit Pro</h1>
+            <p class="text-muted">Área do Cliente</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-floating mb-3">
+                <input type="text" name="username" class="form-control" id="floatingInput" placeholder="Usuário" required>
+                <label for="floatingInput">Usuário ou E-mail</label>
+            </div>
+            
+            <div class="form-floating mb-3">
+                <input type="password" name="password" class="form-control" id="floatingPassword" placeholder="Senha" required>
+                <label for="floatingPassword">Senha</label>
+            </div>
+
+            <button class="btn btn-success btn-entrar btn-lg" type="submit">Acessar Painel</button>
+            
+            <p class="mt-4 mb-3 text-muted text-center">
+                <small>&copy; 2025 NutriFit System</small>
+            </p>
+        </form>
+    </div>
+
+</body>
+</html>

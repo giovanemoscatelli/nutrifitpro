@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriFit - Anamnese</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #e9ecef; padding-bottom: 40px; }
+        .form-container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .section-header { border-bottom: 2px solid #2ecc71; padding-bottom: 10px; margin-bottom: 20px; color: #27ae60; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="form-container">
+        <div class="text-center mb-5">
+            <h1 class="display-6 fw-bold text-dark">📋 Ficha de Anamnese</h1>
+            <p class="text-muted">Profissional: {{ profissional.first_name }} {{ profissional.last_name }}</p>
+        </div>
+
+        {% if erro %}
+            <div class="alert alert-danger shadow-sm">⚠️ {{ erro }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-5">
+                <h4 class="section-header">0. Identificação</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">E-mail (Login)</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Senha</label>
+                        <input type="password" name="senha" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Nascimento</label>
+                        <input type="date" name="data_nascimento" class="form-control" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Gênero</label>
+                        <select name="genero" id="generoSelect" class="form-select" onchange="toggleGenero()" required>
+                            <option value="">...</option>
+                            <option value="homem">Masculino</option>
+                            <option value="mulher">Feminino</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {% if config.mostrar_social %}
+            <div class="mb-5">
+                <h4 class="section-header">1. Social e Rotina</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ocupação</label>
+                        <input type="text" name="ocupacao" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Rotina</label>
+                        <select name="rotina_trabalho" class="form-select">
+                            <option value="sedentario">Sedentário</option>
+                            <option value="leve">Leve</option>
+                            <option value="pesado">Pesado</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                         <label class="form-label">Composição Familiar</label>
+                         <input type="text" name="composicao_familiar" class="form-control">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if config.mostrar_saude %}
+            <div class="mb-5">
+                <h4 class="section-header">2. Saúde</h4>
+                <div class="alert alert-light border">
+                    <div class="form-check"><input type="checkbox" name="problema_cardiaco" class="form-check-input"> <label class="form-check-label">Problema Cardíaco?</label></div>
+                    <div class="form-check"><input type="checkbox" name="dor_peito_atividade" class="form-check-input"> <label class="form-check-label">Dor no peito ao treinar?</label></div>
+                    <div class="form-check"><input type="checkbox" name="medicamento_pressao" class="form-check-input"> <label class="form-check-label">Usa remédio de pressão?</label></div>
+                </div>
+                <label class="form-label">Histórico de Lesões</label>
+                <textarea name="historico_lesoes" class="form-control" rows="2"></textarea>
+            </div>
+            {% endif %}
+
+            {% if config.mostrar_sono %}
+            <div class="mb-5">
+                <h4 class="section-header">3. Sono</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                         <label class="form-label">Horas de sono</label>
+                         <input type="number" name="horas_sono" class="form-control">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center">
+                         <div class="form-check">
+                             <input type="checkbox" name="ronca_apneia" class="form-check-input"> 
+                             <label class="form-check-label">Ronca ou tem apneia?</label>
+                         </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if config.mostrar_nutricao %}
+            <div class="mb-5">
+                <h4 class="section-header">4. Nutrição</h4>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Objetivo</label>
+                        <select name="objetivo" class="form-select">
+                            <option value="emagrecimento">Emagrecimento</option>
+                            <option value="hipertrofia">Hipertrofia</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Suplementos em uso</label>
+                        <textarea name="suplementos_farmacos" class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if config.mostrar_hormonios %}
+            <div class="mb-5">
+                <h4 class="section-header">5. Metabólico e Hormonal</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check"><input type="checkbox" name="fadiga_matinal" class="form-check-input"> <label class="form-check-label">Fadiga ao acordar</label></div>
+                        <div class="form-check"><input type="checkbox" name="intolerancia_frio" class="form-check-input"> <label class="form-check-label">Sente muito frio</label></div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div id="secaoHomem" class="hidden p-3 bg-light rounded border">
+                            <strong class="text-primary d-block mb-2">Homem:</strong>
+                            <div class="form-check"><input type="checkbox" name="libido_baixa" class="form-check-input"> <label class="form-check-label">Libido Baixa</label></div>
+                        </div>
+                        <div id="secaoMulher" class="hidden p-3 bg-light rounded border">
+                            <strong class="text-danger d-block mb-2">Mulher:</strong>
+                            <div class="form-check"><input type="checkbox" name="ciclo_menstrual_regular" class="form-check-input"> <label class="form-check-label">Ciclo Regular</label></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if config.mostrar_psico %}
+            <div class="mb-5">
+                <h4 class="section-header">6. Treino e Mente</h4>
+                <div class="mb-3">
+                    <label class="form-label">Principal Motivação</label>
+                    <input type="text" name="motivacao_principal" class="form-control">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observações Finais</label>
+                    <textarea name="observacoes_finais" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-success btn-lg">Enviar Ficha Completa ✅</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleGenero() {
+        var genero = document.getElementById("generoSelect").value;
+        var divHomem = document.getElementById("secaoHomem");
+        var divMulher = document.getElementById("secaoMulher");
+
+        if (genero === "homem") {
+            if(divHomem) divHomem.classList.remove("hidden");
+            if(divMulher) divMulher.classList.add("hidden");
+        } else if (genero === "mulher") {
+            if(divHomem) divHomem.classList.add("hidden");
+            if(divMulher) divMulher.classList.remove("hidden");
+        }
+    }
+</script>
+
+</body>
+</html>

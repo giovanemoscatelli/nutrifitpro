@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriFit - Meu Painel</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2c3e50">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        body { background-color: #f8f9fa; }
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,.05); margin-bottom: 20px; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .card-header { background: white; border-bottom: 1px solid #f0f0f0; font-weight: bold; border-radius: 12px 12px 0 0 !important; }
+        .badge-refeicao { font-size: 0.9em; padding: 8px 12px; }
+        .suplemento-row { background-color: #e3fcec; border-left: 4px solid #00b894; }
+        .treino-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: #ffeaa7; color: #d63031; border-radius: 50%; margin-right: 10px; }
+        
+        /* Ajuste para dropdown do sino */
+        .dropdown-menu { border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.15); border-radius: 10px; }
+        .dropdown-item { white-space: normal; border-bottom: 1px solid #f0f0f0; padding: 10px 15px; }
+        .dropdown-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-dumbbell me-2"></i>NutriFit Pro</a>
+            
+            <div class="d-flex align-items-center text-white gap-3">
+                
+                <div class="dropdown">
+                    <button class="btn btn-dark position-relative" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-bell"></i>
+                        {% if qtd_notificacoes > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ qtd_notificacoes }}
+                            </span>
+                        {% endif %}
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" style="width: 320px;">
+                        <li><h6 class="dropdown-header">Notificações</h6></li>
+                        {% for notif in notificacoes %}
+                            <li>
+                                <a class="dropdown-item" href="{{ notif.link_acao }}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <strong class="mb-1 text-primary">{{ notif.titulo }}</strong>
+                                        <small class="text-muted" style="font-size:0.7em">{{ notif.data_criacao|date:"d/m H:i" }}</small>
+                                    </div>
+                                    <p class="mb-1 small">{{ notif.mensagem }}</p>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li><span class="dropdown-item text-muted text-center py-3">Sem novas notificações.</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <span class="d-none d-md-block me-3">Olá, {{ user.username }}</span>
+                    <form action="{% url 'logout' %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Sair">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center py-4">
+                        {% if plano %}
+                            <h2 class="fw-bold">{{ plano.titulo }}</h2>
+                            <p class="mb-0 opacity-75">Cliente: {{ plano.cliente.nome }}</p>
+                        {% else %}
+                            <h2>Bem-vindo ao NutriFit</h2>
+                            <p>Aguardando seu nutricionista liberar o plano.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="mb-3 text-success"><i class="fas fa-carrot me-2"></i>Plano Alimentar</h4>
+                
+                {% if plano %}
+                    {% for refeicao in refeicoes %}
+                        <div class="card {% if refeicao.eh_suplementacao %}suplemento-row{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge bg-warning text-dark badge-refeicao">
+                                        <i class="far fa-clock me-1"></i> {{ refeicao.horario|date:"H:i" }}
+                                    </span>
+                                    <strong class="text-uppercase text-muted" style="font-size: 0.85em;">{{ refeicao.nome }}</strong>
+                                </div>
+                                <p class="card-text mb-0" style="white-space: pre-line;">{{ refeicao.descricao_alimentos }}</p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-info">Nenhuma refeição cadastrada.</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <h4 class="mb-3 text-danger"><i class="fas fa-fire me-2"></i>Meus Treinos</h4>
+
+                {% if treinos %}
+                    {% for treino in treinos %}
+                        <div class="card border-danger">
+                            <div class="card-header d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="treino-icon"><i class="fas fa-running"></i></div>
+                                    <span>{{ treino.titulo }}</span>
+                                </div>
+                                <span class="badge bg-secondary">{{ treino.get_local_display }}</span>
+                            </div>
+                            <div class="card-body p-0">
+                                {% if treino.observacoes %}
+                                    <div class="p-3 bg-light text-muted small border-bottom">
+                                        <i class="fas fa-info-circle me-1"></i> {{ treino.observacoes }}
+                                    </div>
+                                {% endif %}
+
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="ps-3">Exercício</th>
+                                                <th class="text-center">Séries</th>
+                                                <th class="text-center">Reps</th>
+                                                <th class="text-center">Vídeo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for exercicio in treino.exercicio_set.all %}
+                                            <tr>
+                                                <td class="ps-3">
+                                                    <strong>{{ exercicio.nome }}</strong>
+                                                    <br><small class="text-muted">{{ exercicio.carga_kg }}</small>
+                                                </td>
+                                                <td class="text-center align-middle">{{ exercicio.series }}</td>
+                                                <td class="text-center align-middle">{{ exercicio.repeticoes }}</td>
+                                                <td class="text-center align-middle">
+                                                    {% if exercicio.video_demonstracao %}
+                                                        <a href="{{ exercicio.video_demonstracao }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-play"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-warning">Nenhum treino cadastrado.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 1. Pedir permissão ao usuário para mostrar notificações
+        if ("Notification" in window) {
+            if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+                Notification.requestPermission();
+            }
+        }
+
+        // 2. Se tiver notificações não lidas, dispara o alerta do navegador
+        {% if qtd_notificacoes > 0 %}
+            if (Notification.permission === "granted") {
+                new Notification("NutriFit Pro", {
+                    body: "Você tem {{ qtd_notificacoes }} novas notificações pendentes!",
+                    icon: "/static/core/icon.png" // Usa o ícone que você salvou
+                });
+            }
+        {% endif %}
+    </script>
+</body>
+</html>
