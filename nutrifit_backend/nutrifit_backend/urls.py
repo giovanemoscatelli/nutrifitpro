@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import path
 from django.contrib.auth import views as auth_views
-# Adicionamos manifest_view no import
-from core.views import visualizar_dieta, anamnese_publica, manifest_view 
+from core.views import (
+    home_redirect, anamnese_publica, 
+    manifest_view, service_worker_view
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -11,8 +13,10 @@ urlpatterns = [
     
     path('anamnese/convite/<uuid:uuid_link>/', anamnese_publica, name='anamnese_publica'),
 
-    # O endereço do arquivo de configuração do App
+    # PWA
     path('manifest.json', manifest_view, name='manifest'),
+    path('sw.js', service_worker_view, name='service_worker'), # <--- NOVO (Para instalar offline)
 
-    path('', visualizar_dieta, name='home'), 
+    # Rota Principal (O Roteador Inteligente)
+    path('', home_redirect, name='home'), 
 ]

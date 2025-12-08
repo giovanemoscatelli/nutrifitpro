@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.http import JsonResponse # <--- IMPORTANTE: Novo import para o App
+from django.http import JsonResponse, HttpResponse
+from django.db.models import Q
+from datetime import date # Importante para datas
 from .models import PlanoAlimentar, Refeicao, PlanoTreino, Cliente, FichaAnamnese, ConfiguracaoAnamnese, Notificacao
 
 # --- VIEW 1: ANAMNESE PÚBLICA ---
@@ -91,31 +93,63 @@ def anamnese_publica(request, uuid_link):
     })
 
 
-# --- VIEW 2: PAINEL DO CLIENTE ---
+# --- VIEW 2: ROTEADOR INTELIGENTE (Decide quem vê o quê) ---
 @login_required
-def visualizar_dieta(request):
+def home_redirect(request):
+    if request.user.is_superuser or request.user.is_staff:
+        return dashboard_profissional(request)
+    else:
+        return visualizar_dieta_cliente(request)
+
+
+# --- VIEW 3: DASHBOARD DO PROFISSIONAL (Aniversários + Notificações) ---
+@login_required
+def dashboard_profissional(request):
+    usuario_logado = request.user
+    hoje = date.today()
+
+    # 1. Aniversariantes do Mês
+    # Filtra clientes cujo mês de nascimento é igual ao mês atual
+    aniversariantes = Cliente.objects.filter(
+        data_nascimento__month=hoje.month
+    ).order_by('data_nascimento__day')
+
+    # 2. Notificações
+    notificacoes = Notificacao.objects.filter(destinatario=usuario_logado, lida=False)
+    qtd_notificacoes = notificacoes.count()
+
+    # 3. Estatísticas rápidas
+    total_clientes = Cliente.objects.count()
+    
+    contexto = {
+        'aniversariantes': aniversariantes,
+        'notificacoes': notificacoes,
+        'qtd_notificacoes': qtd_notificacoes,
+        'total_clientes': total_clientes,
+        'hoje': hoje,
+    }
+    return render(request, 'core/dashboard_profissional.html', contexto)
+
+
+# --- VIEW 4: PAINEL DO CLIENTE (Dieta + Treino) ---
+@login_required
+def visualizar_dieta_cliente(request):
     usuario_logado = request.user
     
     try:
         cliente = Cliente.objects.get(email=usuario_logado.email)
         plano_alimentar = PlanoAlimentar.objects.filter(cliente=cliente).last()
         treinos = PlanoTreino.objects.filter(cliente=cliente)
-        
     except Cliente.DoesNotExist:
         plano_alimentar = None
         treinos = []
-        
-        if usuario_logado.is_superuser:
-            plano_alimentar = PlanoAlimentar.objects.last()
-            if plano_alimentar:
-                treinos = PlanoTreino.objects.filter(cliente=plano_alimentar.cliente)
 
     if plano_alimentar:
         refeicoes = Refeicao.objects.filter(plano_alimentar=plano_alimentar).order_by('horario')
     else:
         refeicoes = []
 
-    # NOVIDADE: Buscando Notificações para o Sino
+    # Notificações para o cliente (caso queiramos mandar avisos pra ele futuramente)
     notificacoes = Notificacao.objects.filter(destinatario=usuario_logado, lida=False)
     qtd_notificacoes = notificacoes.count()
 
@@ -129,8 +163,7 @@ def visualizar_dieta(request):
     return render(request, 'core/relatorio_dieta.html', contexto)
 
 
-# --- VIEW 3: MANIFESTO DO APP (PWA) ---
-# Essa função serve o arquivo JSON que transforma o site em App
+# --- VIEW 5: MANIFESTO PWA ---
 def manifest_view(request):
     return JsonResponse({
         "name": "NutriFit Pro",
@@ -147,3 +180,26 @@ def manifest_view(request):
             }
         ]
     })
+
+# --- VIEW 6: SERVICE WORKER (Para instalar offline e cache) ---
+def service_worker_view(request):
+    js_code = """
+    self.addEventListener('install', function(event) {
+        event.waitUntil(
+            caches.open('nutrifit-v1').then(function(cache) {
+                return cache.addAll([
+                    '/',
+                    '/static/core/icon.png'
+                ]);
+            })
+        );
+    });
+    self.addEventListener('fetch', function(event) {
+        event.respondWith(
+            fetch(event.request).catch(function() {
+                return caches.match(event.request);
+            })
+        );
+    });
+    """
+    return HttpResponse(js_code, content_type="application/javascript")
