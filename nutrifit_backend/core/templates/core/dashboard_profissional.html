@@ -6,20 +6,15 @@
     <title>Painel do Profissional - NutriFit</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#2c3e50">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-
     <style>
         body { background-color: #f4f6f9; }
-        .card-counter { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 10px; border: none; transition: .3s linear all; }
+        .card-counter { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 10px; border: none; transition: .3s; }
         .card-counter:hover { transform: scale(1.02); }
         .card-header-custom { background-color: #fff; border-bottom: 2px solid #f0f0f0; font-weight: bold; padding: 15px; }
         .birthday-item { border-left: 4px solid #2ecc71; background: white; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
-        .birthday-today { border-left: 4px solid #e74c3c; background: #fff5f5; } /* Destaque para HOJE */
+        .agenda-item { border-left: 4px solid #3498db; background: white; margin-bottom: 10px; padding: 10px; border-radius: 5px; }
         .notif-item { border-bottom: 1px solid #eee; padding: 10px 0; }
-        .notif-item:last-child { border: none; }
     </style>
 </head>
 <body>
@@ -29,21 +24,28 @@
         <a class="navbar-brand" href="#"><i class="fas fa-user-md me-2"></i>Área do Profissional</a>
         <div class="d-flex align-items-center text-white">
             <span class="me-3 d-none d-md-block">Dr(a). {{ user.username }}</span>
-            <form action="{% url 'logout' %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger btn-sm"><i class="fas fa-sign-out-alt"></i></button>
-            </form>
+            <form action="{% url 'logout' %}" method="post" class="d-inline">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-sign-out-alt"></i></button></form>
         </div>
     </div>
 </nav>
 
 <div class="container">
     
+    {% if assinatura %}
+        <div class="alert {% if assinatura.dias_restantes < 3 %}alert-danger{% else %}alert-info{% endif %} d-flex justify-content-between align-items-center shadow-sm">
+            <span>
+                <i class="fas fa-crown me-2"></i> <strong>Plano Atual:</strong> {{ assinatura.get_plano_display }} 
+                (Expira em {{ assinatura.dias_restantes }} dias)
+            </span>
+            <a href="{% url 'pagina_precos' %}" class="btn btn-sm btn-primary fw-bold">Ver Planos / Renovação</a>
+        </div>
+    {% endif %}
+
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card card-counter bg-primary text-white mb-3">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-users"></i> Total de Clientes</h5>
+                    <h5 class="card-title"><i class="fas fa-users"></i> Clientes</h5>
                     <h2 class="fw-bold">{{ total_clientes }}</h2>
                 </div>
             </div>
@@ -51,7 +53,7 @@
         <div class="col-md-4">
             <div class="card card-counter bg-warning text-dark mb-3">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-bell"></i> Notificações</h5>
+                    <h5 class="card-title"><i class="fas fa-bell"></i> Avisos</h5>
                     <h2 class="fw-bold">{{ qtd_notificacoes }}</h2>
                 </div>
             </div>
@@ -59,81 +61,65 @@
         <div class="col-md-4">
             <div class="card card-counter bg-success text-white mb-3">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-link"></i> Admin Completo</h5>
-                    <a href="/admin/" class="btn btn-light btn-sm mt-2 fw-bold text-success">Acessar Sistema</a>
+                    <h5 class="card-title"><i class="fas fa-calendar-plus"></i> Consulta</h5>
+                    <a href="/admin/core/consulta/add/" class="btn btn-light btn-sm mt-2 fw-bold text-success">Agendar</a>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="row">
-        
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header-custom text-success">
-                    <i class="fas fa-birthday-cake me-2"></i> Aniversariantes do Mês
-                </div>
+                <div class="card-header-custom text-primary"><i class="fas fa-calendar-day me-2"></i> Hoje ({{ hoje|date:"d/m" }})</div>
                 <div class="card-body bg-light">
-                    {% for cliente in aniversariantes %}
-                        <div class="birthday-item {% if cliente.data_nascimento.day == hoje.day %}birthday-today{% endif %}">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>{{ cliente.nome }}</strong>
-                                    <br>
-                                    <small class="text-muted">Dia {{ cliente.data_nascimento.day }} ({{ cliente.data_nascimento|date:"d/m/Y" }})</small>
-                                </div>
-                                {% if cliente.data_nascimento.day == hoje.day %}
-                                    <span class="badge bg-danger">HOJE! 🎈</span>
-                                {% else %}
-                                    <span class="badge bg-success">Em breve</span>
-                                {% endif %}
+                    {% for consulta in consultas_hoje %}
+                        <div class="agenda-item">
+                            <div class="d-flex justify-content-between">
+                                <div><span class="fw-bold text-primary">{{ consulta.data_horario|date:"H:i" }}</span> - {{ consulta.cliente.nome }}</div>
+                                {% if consulta.link_meet %}<a href="{{ consulta.link_meet }}" target="_blank" class="btn btn-sm btn-primary"><i class="fas fa-video"></i></a>{% endif %}
                             </div>
                         </div>
                     {% empty %}
-                        <p class="text-center text-muted mt-3">Nenhum aniversariante este mês.</p>
+                        <p class="text-center text-muted mt-3">Agenda livre.</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
+        <div class="col-md-4 mb-4">
             <div class="card shadow-sm h-100">
-                <div class="card-header-custom text-primary">
-                    <i class="fas fa-bell me-2"></i> Últimas Atividades
+                <div class="card-header-custom text-success"><i class="fas fa-birthday-cake me-2"></i> Aniversariantes</div>
+                <div class="card-body bg-light">
+                    {% for cliente in aniversariantes %}
+                        <div class="birthday-item">
+                            <strong>{{ cliente.nome }}</strong> <span class="badge bg-success float-end">{{ cliente.data_nascimento.day }}/{{ cliente.data_nascimento.month }}</span>
+                        </div>
+                    {% empty %}
+                        <p class="text-center text-muted mt-3">Ninguém este mês.</p>
+                    {% endfor %}
                 </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header-custom text-warning"><i class="fas fa-bell me-2"></i> Recentes</div>
                 <div class="card-body">
                     {% for notif in notificacoes %}
                         <div class="notif-item">
-                            <div class="d-flex justify-content-between">
-                                <strong class="text-dark">{{ notif.titulo }}</strong>
-                                <small class="text-muted">{{ notif.data_criacao|date:"d/m H:i" }}</small>
-                            </div>
-                            <p class="mb-1 text-secondary small">{{ notif.mensagem }}</p>
-                            <a href="{{ notif.link_acao }}" class="btn btn-sm btn-outline-primary mt-1">Ver Detalhes</a>
+                            <small class="text-muted">{{ notif.data_criacao|date:"d/m H:i" }}</small><br>
+                            <strong>{{ notif.titulo }}</strong>
+                            <a href="{{ notif.link_acao }}" class="btn btn-sm btn-outline-primary float-end">Ver</a>
                         </div>
                     {% empty %}
-                        <p class="text-center text-muted mt-3">Tudo tranquilo por aqui. Nenhuma notificação nova.</p>
+                        <p class="text-center text-muted">Tudo limpo.</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
-
     </div>
 </div>
-
-<script>
-    // Ativa Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                console.log('ServiceWorker registrado com sucesso: ', registration.scope);
-            }, function(err) {
-                console.log('Falha ao registrar ServiceWorker: ', err);
-            });
-        });
-    }
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

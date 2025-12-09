@@ -36,6 +36,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.BloqueioPagamentoMiddleware',
 ]
 
 ROOT_URLCONF = 'nutrifit_backend.urls'
@@ -95,3 +96,17 @@ LOGIN_URL = '/login/'
 
 # ID
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Configuração de Mídia (Upload de Fotos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+# --- CONFIGURAÇÃO DO STRIPE (PAGAMENTOS) ---
+
+# Cole aqui a chave que começa com sk_test_ (que você viu no site)
+STRIPE_SECRET_KEY = 'sk_test_51ScWBnBWIkMrWeSEKilXmrlZUREiMUupQlPFgfAo6UqXozusLo87Rq2ijqiJlR5sdM9YVPzaA1EVUCD4xlMv7JLy00GlpOG2Pt' 
+
+# URL do seu site (para onde o Stripe devolve o cliente)
+# Quando subir pro Render, você troca isso para https://nutrifitpro.onrender.com
+DOMAIN_URL = 'http://127.0.0.1:8000'

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Avaliação - {{ cliente.nome }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #f0f2f5; padding: 20px; }
+        .ficha-card { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); padding: 30px; margin-bottom: 20px; }
+        .destaque-numero { font-size: 2.5em; font-weight: bold; color: #2c3e50; }
+        .foto-box { width: 100%; height: 250px; background: #eee; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .foto-box img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-whatsapp { background-color: #25D366; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container" style="max-width: 900px;">
+    
+    <div class="ficha-card text-center">
+        <h1>📊 Avaliação Física</h1>
+        <h3 class="text-primary">{{ cliente.nome }}</h3>
+        <p class="text-muted">{{ avaliacao.data_avaliacao|date:"d de F de Y" }}</p>
+        {% if link_zap %}
+            <a href="{{ link_zap }}" target="_blank" class="btn btn-whatsapp btn-lg mt-3"><i class="fab fa-whatsapp"></i> Enviar no WhatsApp</a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-4"><div class="ficha-card text-center"><div class="destaque-numero">{{ avaliacao.peso_kg }}</div>Peso (kg)</div></div>
+        <div class="col-md-4"><div class="ficha-card text-center"><div class="destaque-numero text-warning">{{ avaliacao.resultado_gordura }}%</div>Gordura</div></div>
+        <div class="col-md-4"><div class="ficha-card text-center"><div class="destaque-numero text-success">{{ avaliacao.resultado_imc }}</div>IMC</div></div>
+    </div>
+
+    <div class="ficha-card">
+        <h4><i class="fas fa-chart-line"></i> Evolução</h4>
+        <canvas id="graficoEvolucao"></canvas>
+    </div>
+
+    {% if permite_fotos %}
+        <div class="ficha-card">
+            <h4><i class="fas fa-camera"></i> Fotos</h4>
+            <div class="row">
+                <div class="col-md-4"><div class="foto-box">{% if avaliacao.foto_frente %}<img src="{{ avaliacao.foto_frente.url }}">{% else %}Sem foto{% endif %}</div></div>
+                <div class="col-md-4"><div class="foto-box">{% if avaliacao.foto_perfil %}<img src="{{ avaliacao.foto_perfil.url }}">{% else %}Sem foto{% endif %}</div></div>
+                <div class="col-md-4"><div class="foto-box">{% if avaliacao.foto_costas %}<img src="{{ avaliacao.foto_costas.url }}">{% else %}Sem foto{% endif %}</div></div>
+            </div>
+        </div>
+    {% else %}
+        <div class="ficha-card text-center bg-light p-5">
+            <h4 class="text-muted mb-3"><i class="fas fa-lock"></i> Fotos Antes/Depois Bloqueadas</h4>
+            <p>Disponível apenas nos planos Ouro e Gratuito.</p>
+            <a href="{% url 'pagina_precos' %}" class="btn btn-warning fw-bold">Ver Planos</a>
+        </div>
+    {% endif %}
+
+</div>
+
+<script>
+    const ctx = document.getElementById('graficoEvolucao');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ datas_grafico|safe }},
+            datasets: [{ label: 'Peso', data: {{ pesos_grafico|safe }}, borderColor: '#2c3e50', tension: 0.3 }]
+        }
+    });
+</script>
+</body>
+</html>

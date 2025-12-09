@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planos NutriFit Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background: #f8f9fa; padding: 40px 0; font-family: 'Segoe UI', sans-serif; }
+        
+        .header-section { text-align: center; margin-bottom: 50px; }
+        .header-section h1 { font-weight: 800; color: #2c3e50; }
+        
+        .card-plan { border: none; border-radius: 12px; transition: 0.3s; overflow: hidden; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; height: 100%; }
+        .card-plan:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        
+        .header-bronze { background: #cd7f32; color: white; padding: 20px; text-align: center; }
+        .header-prata { background: #95a5a6; color: white; padding: 20px; text-align: center; }
+        .header-ouro { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: white; padding: 20px; text-align: center; }
+        
+        .price-area { text-align: center; padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+        .currency { font-size: 1.5rem; vertical-align: top; }
+        .amount { font-size: 3.5rem; font-weight: 800; color: #333; }
+        .period { font-size: 1rem; color: #777; }
+        .total-year { font-size: 0.85rem; color: #27ae60; font-weight: bold; background: #e8f8f5; padding: 5px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
+        
+        .features { padding: 20px; }
+        .features li { list-style: none; margin-bottom: 12px; font-size: 0.95rem; color: #555; display: flex; align-items: center; }
+        .features i { margin-right: 10px; width: 20px; text-align: center; }
+        .check { color: #27ae60; }
+        .cross { color: #e74c3c; opacity: 0.5; }
+        
+        .promo-badge { position: absolute; top: 0; right: 0; background: #e74c3c; color: white; padding: 5px 15px; font-size: 0.8rem; font-weight: bold; border-bottom-left-radius: 10px; }
+        
+        .btn-select { width: 100%; padding: 12px; font-weight: bold; border-radius: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-bronze { border: 2px solid #cd7f32; color: #cd7f32; background: transparent; }
+        .btn-bronze:hover { background: #cd7f32; color: white; }
+        .btn-prata { border: 2px solid #7f8c8d; color: #7f8c8d; background: transparent; }
+        .btn-prata:hover { background: #7f8c8d; color: white; }
+        .btn-ouro { background: #f1c40f; color: white; border: none; box-shadow: 0 4px 15px rgba(241, 196, 15, 0.4); }
+        .btn-ouro:hover { background: #f39c12; transform: scale(1.05); }
+
+        .cycle-select { border: 2px solid #eee; border-radius: 8px; padding: 8px; width: 80%; margin: 0 auto 10px auto; display: block; font-weight: bold; color: #555; cursor: pointer; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('vencido')) {
+            document.write(`
+                <div class="alert alert-danger text-center shadow-lg mb-5" role="alert" style="border-left: 5px solid darkred;">
+                    <h2 class="alert-heading fw-bold"><i class="fas fa-lock"></i> ACESSO BLOQUEADO</h2>
+                    <p class="mb-0 fs-5">Sua assinatura expirou. Para recuperar o acesso, renove seu plano abaixo.</p>
+                </div>
+            `);
+        }
+    </script>
+
+    <div class="header-section">
+        <a href="/" class="btn btn-outline-secondary mb-4">← Voltar ao Painel</a>
+        <h1>Escolha o plano ideal para você</h1>
+        <p class="text-muted">Desbloqueie todo o potencial do seu negócio.</p>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-4 col-md-6">
+            <div class="card-plan">
+                <div class="header-bronze"><h3 class="m-0"><i class="fas fa-medal"></i> BRONZE</h3></div>
+                <div class="card-body p-0">
+                    <div class="p-3 text-center bg-light border-bottom">
+                        <select class="form-select cycle-select" id="select-bronze" onchange="updatePrice('bronze')">
+                            <option value="mensal">Mensal</option>
+                            <option value="trimestral">Trimestral</option>
+                            <option value="semestral">Semestral</option>
+                            <option value="anual" selected>Anual (-45%)</option>
+                        </select>
+                    </div>
+                    <div class="price-area">
+                        <div><span class="currency">R$</span><span class="amount" id="price-bronze">19</span><span class="currency">,00</span></div>
+                        <div class="period">/mês</div>
+                        <div class="total-year" id="total-bronze">Total R$ 228,00 por ano</div>
+                    </div>
+                    <ul class="features">
+                        <li><i class="fas fa-check check"></i> Avaliações Ilimitadas</li>
+                        <li><i class="fas fa-check check"></i> Até 500 Clientes</li>
+                        <li><i class="fas fa-times cross"></i> Fotos Antes/Depois</li>
+                    </ul>
+                    <div class="p-4"><button class="btn btn-select btn-bronze" onclick="assinar('bronze')">Assinar Bronze</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card-plan">
+                <div class="header-prata"><h3 class="m-0"><i class="fas fa-medal"></i> PRATA</h3></div>
+                <div class="card-body p-0">
+                    <div class="p-3 text-center bg-light border-bottom">
+                        <select class="form-select cycle-select" id="select-prata" onchange="updatePrice('prata')">
+                            <option value="mensal">Mensal</option>
+                            <option value="trimestral">Trimestral</option>
+                            <option value="semestral">Semestral</option>
+                            <option value="anual" selected>Anual (-45%)</option>
+                        </select>
+                    </div>
+                    <div class="price-area">
+                        <div><span class="currency">R$</span><span class="amount" id="price-prata">33</span><span class="currency">,00</span></div>
+                        <div class="period">/mês</div>
+                        <div class="total-year" id="total-prata">Total R$ 396,00 por ano</div>
+                    </div>
+                    <ul class="features">
+                        <li><i class="fas fa-check check"></i> Avaliações Ilimitadas</li>
+                        <li><i class="fas fa-check check"></i> Até 1.000 Clientes</li>
+                        <li><i class="fas fa-times cross"></i> Fotos Antes/Depois</li>
+                    </ul>
+                    <div class="p-4"><button class="btn btn-select btn-prata" onclick="assinar('prata')">Assinar Prata</button></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card-plan border border-warning border-2">
+                <div class="promo-badge">PROMOÇÃO</div>
+                <div class="header-ouro"><h3 class="m-0"><i class="fas fa-crown"></i> OURO</h3></div>
+                <div class="card-body p-0">
+                    <div class="p-3 text-center bg-light border-bottom">
+                        <select class="form-select cycle-select" id="select-ouro" onchange="updatePrice('ouro')">
+                            <option value="mensal">Mensal</option>
+                            <option value="trimestral">Trimestral</option>
+                            <option value="semestral">Semestral</option>
+                            <option value="anual" selected>Anual (-45%)</option>
+                        </select>
+                    </div>
+                    <div class="price-area">
+                        <div><span class="currency">R$</span><span class="amount" id="price-ouro">19</span><span class="currency">,00</span></div>
+                        <div class="period">/mês (Promoção)</div>
+                        <div class="total-year" id="total-ouro">Total R$ 228,00 por ano</div>
+                    </div>
+                    <ul class="features">
+                        <li><i class="fas fa-check check"></i> <strong>Clientes ILIMITADOS</strong></li>
+                        <li><i class="fas fa-check check"></i> <strong>Fotos Antes/Depois</strong></li>
+                        <li><i class="fas fa-check check"></i> IA Geradora</li>
+                    </ul>
+                    <div class="p-4"><button class="btn btn-select btn-ouro" onclick="assinar('ouro')">QUERO SER OURO 🏆</button></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const tabelaPrecos = {
+        bronze: {
+            mensal: { val: "34", total: "R$ 34,00/mês" },
+            trimestral: { val: "29", total: "Total R$ 87,00" },
+            semestral: { val: "24", total: "Total R$ 144,00" },
+            anual: { val: "19", total: "Total R$ 228,00" }
+        },
+        prata: {
+            mensal: { val: "59", total: "R$ 59,00/mês" },
+            trimestral: { val: "50", total: "Total R$ 150,00" },
+            semestral: { val: "41", total: "Total R$ 246,00" },
+            anual: { val: "33", total: "Total R$ 396,00" }
+        },
+        ouro: {
+            mensal: { val: "34", total: "R$ 34,00/mês" },
+            trimestral: { val: "29", total: "Total R$ 87,00" },
+            semestral: { val: "24", total: "Total R$ 144,00" },
+            anual: { val: "19", total: "Total R$ 228,00" }
+        }
+    };
+
+    function updatePrice(plano) {
+        const select = document.getElementById(`select-${plano}`);
+        const ciclo = select.value;
+        const dados = tabelaPrecos[plano][ciclo];
+        
+        document.getElementById(`price-${plano}`).innerText = dados.val;
+        document.getElementById(`total-${plano}`).innerText = dados.total;
+    }
+
+    // --- FUNÇÃO QUE MANDA PARA O STRIPE ---
+    function assinar(plano) {
+        // Pega o ciclo escolhido (mensal, anual, etc)
+        const ciclo = document.getElementById(`select-${plano}`).value;
+        
+        // Redireciona para a view do Django que cria o pagamento
+        window.location.href = `/pagamento/criar/?plano=${plano}&ciclo=${ciclo}`;
+    }
+</script>
+
+</body>
+</html>
